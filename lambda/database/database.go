@@ -1,11 +1,13 @@
 package database
 
 import (
+	"fmt"
 	"lambda-func/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 const (
@@ -14,6 +16,12 @@ const (
 
 type DynamoDBClient struct {
 	databaseStore *dynamodb.DynamoDB
+}
+
+type UserStore interface {
+	DoesUserExist(username string) (bool, error)
+	InsertUser(user types.User) error
+	GetUser(username string) (types.User, error)
 }
 
 func NewDynamoDBClient() DynamoDBClient {
@@ -47,12 +55,12 @@ func (c DynamoDBClient) DoesUserExist(username string) (bool, error) {
 }
 
 // check if thye user exist
-func (c DynamoDBClient) InsertUser(user types.RegisterUser) error {
+func (c DynamoDBClient) InsertUser(user types.User) error {
 	item := &dynamodb.PutItemInput{
 		TableName: aws.String(TABLE_NAME),
 		Item: map[string]*dynamodb.AttributeValue{
 			"username": {S: aws.String(user.Username)},
-			"password": {S: aws.String(user.Password)},
+			"password": {S: aws.String(user.PasswordHash)},
 		},
 	}
 	_, err := c.databaseStore.PutItem(item)
@@ -61,4 +69,34 @@ func (c DynamoDBClient) InsertUser(user types.RegisterUser) error {
 	}
 
 	return nil
+}
+
+func (c DynamoDBClient) GetUser(username string) (types.User, error) {
+	var user types.User
+
+	result, err := c.databaseStore.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(TABLE_NAME),
+		Key: map[string]*dynamodb.AttributeValue{
+			"username": {
+				S: aws.String(username),
+			},
+		},
+	})
+
+	if err != nil {
+		return user, err
+	}
+
+	if result.Item == nil {
+		return user, fmt.Errorf("user not found")
+	}
+
+	err = dynamodbattribute.UnmarshalMap(result.Item, &user)
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+
 }
