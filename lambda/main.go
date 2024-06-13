@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"lambda-func/app"
 	"lambda-func/middleware"
-	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/joho/godotenv"
 )
 
 type MyEvent struct {
@@ -33,10 +31,6 @@ func ProtectedHandler(request events.APIGatewayProxyRequest) (events.APIGatewayP
 func main() {
 	myApp := app.NewApp()
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	lambda.Start(func(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		switch request.Path {
 		case "/register":
