@@ -24,6 +24,7 @@ func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest)
 
 	var registerUser types.RegisterUser
 
+	// unmarshal the response from request to register user
 	err := json.Unmarshal([]byte(request.Body), &registerUser)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
@@ -32,6 +33,7 @@ func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest)
 		}, err
 	}
 
+	// check if username of password is empty
 	if registerUser.Username == "" || registerUser.Password == "" {
 		return events.APIGatewayProxyResponse{
 			Body:       "Invalid Request - empty field provided",
@@ -47,6 +49,7 @@ func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest)
 		}, fmt.Errorf("there was an error checking if the user exist %w", err)
 	}
 
+	// if user exist
 	if userExist {
 		return events.APIGatewayProxyResponse{
 			Body:       "User already exist",
@@ -54,6 +57,7 @@ func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest)
 		}, nil
 	}
 
+	// create new user with hashed password
 	user, err := types.NewUser(registerUser)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
