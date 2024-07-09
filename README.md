@@ -1,6 +1,6 @@
 # AWS lambda project
 
-deployed version on "https://6fcucft8dg.execute-api.us-east-1.amazonaws.com/prod/"
+deployed version on ""
 
 **go-lambda**
 -- aws infrastructure running `/lambda` go project
